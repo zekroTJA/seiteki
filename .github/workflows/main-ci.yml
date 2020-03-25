@@ -22,4 +22,6 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Run Tests
-      run: go test -v -cover ./...
+      run: |
+        export STK_TEST_WEBDIR="$PWD/testdata"
+        go test -v -cover ./...

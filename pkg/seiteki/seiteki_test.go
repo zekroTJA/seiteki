@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"time"
 )
 
 func getConfig() *Config {
 	return &Config{
-		Addr:          "localhost:8080",
+		Addr:          "127.0.0.1:8080",
 		CacheDuration: "720h",
 		CertFile:      "",
 		KeyFile:       "",
@@ -66,12 +67,14 @@ func TestListenAndServe(t *testing.T) {
 		}
 	}()
 
-	res, err := http.Get("http://localhost:8080")
+	time.Sleep(1 * time.Second)
+
+	res, err := http.Get("http://127.0.0.1:8080")
 	if err != nil {
-		t.Errorf("req http://localhost:8080 failed: %s", err.Error())
+		t.Errorf("req http://127.0.0.1:8080 failed: %s", err.Error())
 	}
 	if res.StatusCode != http.StatusOK {
-		t.Errorf("req http://localhost:8080 failed: status code was %d",
+		t.Errorf("req http://127.0.0.1:8080 failed: status code was %d",
 			res.StatusCode)
 	}
 	body, err := ioutil.ReadAll(res.Body)
@@ -79,15 +82,15 @@ func TestListenAndServe(t *testing.T) {
 		t.Error(err)
 	}
 	if bytes.Compare(body, contIndex) != 0 {
-		t.Errorf("req http://localhost:8080 failed: wrong body content")
+		t.Errorf("req http://127.0.0.1:8080 failed: wrong body content")
 	}
 
-	res, err = http.Get("http://localhost:8080/test")
+	res, err = http.Get("http://127.0.0.1:8080/test")
 	if err != nil {
-		t.Errorf("req http://localhost:8080/test failed: %s", err.Error())
+		t.Errorf("req http://127.0.0.1:8080/test failed: %s", err.Error())
 	}
 	if res.StatusCode != http.StatusOK {
-		t.Errorf("req http://localhost:8080/test failed: status code was %d",
+		t.Errorf("req http://127.0.0.1:8080/test failed: status code was %d",
 			res.StatusCode)
 	}
 	body, err = ioutil.ReadAll(res.Body)
@@ -95,15 +98,15 @@ func TestListenAndServe(t *testing.T) {
 		t.Error(err)
 	}
 	if bytes.Compare(body, contIndex) != 0 {
-		t.Errorf("req http://localhost:8080/test failed: wrong body content")
+		t.Errorf("req http://127.0.0.1:8080/test failed: wrong body content")
 	}
 
-	res, err = http.Get("http://localhost:8080/test.js")
+	res, err = http.Get("http://127.0.0.1:8080/test.js")
 	if err != nil {
-		t.Errorf("req http://localhost:8080/test.js failed: %s", err.Error())
+		t.Errorf("req http://127.0.0.1:8080/test.js failed: %s", err.Error())
 	}
 	if res.StatusCode != http.StatusOK {
-		t.Errorf("req http://localhost:8080/test.js failed: status code was %d",
+		t.Errorf("req http://127.0.0.1:8080/test.js failed: status code was %d",
 			res.StatusCode)
 	}
 	body, err = ioutil.ReadAll(res.Body)
@@ -111,6 +114,6 @@ func TestListenAndServe(t *testing.T) {
 		t.Error(err)
 	}
 	if bytes.Compare(body, contJs) != 0 {
-		t.Errorf("req http://localhost:8080/test.js failed: wrong body content")
+		t.Errorf("req http://127.0.0.1:8080/test.js failed: wrong body content")
 	}
 }
