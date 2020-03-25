@@ -1,6 +1,7 @@
-// seiteki wraps around fasthttp.Server and fasthttp.FS
-// to provide a simple to use static host serve for
-// routed web applications like Angular or VueJS apps.
+// Package seiteki wraps around fasthttp.Server and
+// fasthttp.FS to provide a simple to use static host
+// serve for routed web applications like Angular or
+// VueJS apps.
 //
 // Specified source files are served via fasthttp.FS
 // and every other request will be directed directly
@@ -8,6 +9,8 @@
 package seiteki
 
 import (
+	"fmt"
+	"math"
 	"path"
 	"regexp"
 	"time"
@@ -19,6 +22,11 @@ import (
 // match static files by file extension. If you really
 // want to, just overwrite this variable to replace it.
 var FileRx = regexp.MustCompile(`^.*\.(ico|css|js|svg|gif|jpe?g|png)$`)
+
+const (
+	cacheControlHeader = "cache-control"
+	etagHeader         = "etag"
+)
 
 // Config includes everything which defines
 // preferences and parameters to configure
@@ -46,7 +54,8 @@ type Config struct {
 
 // Seiteki web server
 type Seiteki struct {
-	config *Config
+	config      *Config
+	cacheHeader string
 
 	fs        *fasthttp.FS
 	s         *fasthttp.Server
@@ -69,11 +78,13 @@ func New(config *Config) (*Seiteki, error) {
 		return nil, err
 	}
 
+	server.cacheHeader = fmt.Sprintf("max-age=%d, public",
+		int(math.Floor(cacheDur.Seconds())))
+
 	server.fs = &fasthttp.FS{
-		CacheDuration: cacheDur,
-		Compress:      config.Compress,
-		Root:          config.StaticDir,
-		IndexNames:    []string{config.IndexFile},
+		Compress:   config.Compress,
+		Root:       config.StaticDir,
+		IndexNames: []string{config.IndexFile},
 	}
 
 	server.fsHandler = server.fs.NewRequestHandler()
@@ -104,10 +115,20 @@ func (server *Seiteki) ListenAndServeBlocking() error {
 // file or a web route. If it is a file, serve the file
 // via FS handler, else serve the "index.html" file.
 func (server *Seiteki) requestHandler(ctx *fasthttp.RequestCtx) {
+	const serverHeader = "seiteki/" + Version
+
+	ctx.Response.Header.Set(cacheControlHeader, server.cacheHeader)
+	ctx.Response.Header.SetServer(serverHeader)
+
 	if FileRx.Match(ctx.Path()) {
 		server.fsHandler(ctx)
 	} else {
 		ctx.SendFile(
 			path.Join(server.fs.Root, server.config.IndexFile))
+	}
+
+	if ctx.Response.StatusCode() == fasthttp.StatusOK {
+		etag := getETag(ctx.Response.Body(), false)
+		ctx.Response.Header.Set(etagHeader, etag)
 	}
 }

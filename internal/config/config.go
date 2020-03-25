@@ -9,8 +9,13 @@ import (
 	"github.com/zekroTJA/seiteki/pkg/seiteki"
 )
 
+// configFile defines the default config file location
 const configFile = "/etc/seiteki/config.json"
 
+// Get returns a merged seiteki.Config instance
+// with configuration values collected from
+// flags, environment variables and default
+// configuration file.
 func Get() (*seiteki.Config, error) {
 	c := getFromFlags()
 
@@ -29,6 +34,10 @@ func Get() (*seiteki.Config, error) {
 	return c, nil
 }
 
+// getFromFlags crteates a seiteki.Config instance
+// with data passed by flags.
+// This is used as base config instance because defaults
+// are set by non-set flag values.
 func getFromFlags() *seiteki.Config {
 	addr := flag.String("addr", "localhost:80", "expose address and port")
 	cacheDuration := flag.String("cd", "720h", "cache duration (for time format see https://golang.org/pkg/time/#ParseDuration)")
@@ -51,11 +60,19 @@ func getFromFlags() *seiteki.Config {
 	}
 }
 
+// getFromEnv creates a seiteki.Config instance
+// from environment variable configuration
+// prefixed with 'STK_'.
 func getFromEnv() (*seiteki.Config, error) {
 	c := new(seiteki.Config)
 	return c, envconfig.Process("STK", c)
 }
 
+// getFromFile tries to read the content of the
+// default config file and creates a seiteki.Config
+// instance if the file exists.
+// If IO errors occur, this will be returned as
+// error.
 func getFromFile() (*seiteki.Config, error) {
 	_, err := os.Stat(configFile)
 	if os.IsNotExist(err) {
@@ -76,6 +93,8 @@ func getFromFile() (*seiteki.Config, error) {
 	return c, dec.Decode(c)
 }
 
+// merge sets or replaces data in target fields
+// if the fields are not empty in source.
 func merge(source, target *seiteki.Config) {
 	if source == nil {
 		return
