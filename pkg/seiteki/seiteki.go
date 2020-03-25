@@ -78,8 +78,8 @@ func New(config *Config) (*Seiteki, error) {
 		return nil, err
 	}
 
-	server.cacheHeader = fmt.Sprintf("max-age=%d, public",
-		int(math.Floor(cacheDur.Seconds())))
+	server.cacheHeader = fmt.Sprintf("max-age=%.0f, public",
+		math.Floor(cacheDur.Seconds()))
 
 	server.fs = &fasthttp.FS{
 		Compress:   config.Compress,
