@@ -1,5 +1,5 @@
 # seiteki
-[![](https://godoc.org/github.com/zekroTJA/seiteki/pkg/seiteki?status.svg)](https://godoc.org/github.com/zekroTJA/seiteki/pkg/seiteki) &nbsp; [![](https://github.com/zekroTJA/seiteki/workflows/Main%20CI/badge.svg)](https://github.com/zekroTJA/seiteki/actions) &nbsp; [![Go Report Card](https://goreportcard.com/badge/github.com/zekroTJA/seiteki)](https://goreportcard.com/report/github.com/zekroTJA/seiteki)
+[![](https://godoc.org/github.com/zekroTJA/seiteki/pkg/seiteki?status.svg)](https://godoc.org/github.com/zekroTJA/seiteki/pkg/seiteki) &nbsp; [![](https://github.com/zekroTJA/seiteki/workflows/Main%20CI/badge.svg)](https://github.com/zekroTJA/seiteki/actions) &nbsp; [![Coverage Status](https://coveralls.io/repos/github/zekroTJA/seiteki/badge.svg)](https://coveralls.io/github/zekroTJA/seiteki) &nbsp; [![Go Report Card](https://goreportcard.com/badge/github.com/zekroTJA/seiteki)](https://goreportcard.com/report/github.com/zekroTJA/seiteki)
 
 seiteki *(静的, japanese for 'static')* is a package and application which wraps around `fasthttp.Server` and `fasthttp.FS` to provide a static delivery server for routed web applications like Angular or VueJS apps. This application is easy to configure via command flags, environment variables or via a config file. So, this application is especially concipated to be used in container images.
 
