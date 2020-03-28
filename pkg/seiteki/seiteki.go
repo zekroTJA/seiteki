@@ -55,6 +55,7 @@ type Config struct {
 // Seiteki web server
 type Seiteki struct {
 	config      *Config
+	logger      Logger
 	cacheHeader string
 
 	fs        *fasthttp.FS
@@ -89,7 +90,15 @@ func New(config *Config) (*Seiteki, error) {
 
 	server.fsHandler = server.fs.NewRequestHandler()
 
+	server.logger = newLogegrWrapper(nil)
+
 	return server, nil
+}
+
+// SetLogger sets a logger interface as
+// request logger
+func (server *Seiteki) SetLogger(logger Logger) {
+	server.logger = newLogegrWrapper(logger)
 }
 
 // ListenAndServeBlocking blocks the current go routine
@@ -117,18 +126,30 @@ func (server *Seiteki) ListenAndServeBlocking() error {
 func (server *Seiteki) requestHandler(ctx *fasthttp.RequestCtx) {
 	const serverHeader = "seiteki/" + Version
 
+	reqPath := ctx.Path()
+
 	ctx.Response.Header.Set(cacheControlHeader, server.cacheHeader)
 	ctx.Response.Header.SetServer(serverHeader)
 
-	if FileRx.Match(ctx.Path()) {
+	if FileRx.Match(reqPath) {
 		server.fsHandler(ctx)
+		server.logRequest(ctx, reqPath, reqPath, server.fs.Root)
 	} else {
-		ctx.SendFile(
-			path.Join(server.fs.Root, server.config.IndexFile))
+		ctx.SendFile(path.Join(server.fs.Root, server.config.IndexFile))
+		server.logRequest(ctx, reqPath, server.config.IndexFile, server.fs.Root)
 	}
 
 	if ctx.Response.StatusCode() == fasthttp.StatusOK {
 		etag := getETag(ctx.Response.Body(), false)
 		ctx.Response.Header.Set(etagHeader, etag)
 	}
+}
+
+// logRequest loggs an incomming requests remote address,
+// request path and the file path which will be sent in the
+// body of the response as same as the response status code.
+func (server *Seiteki) logRequest(ctx *fasthttp.RequestCtx, reqPath []byte, resPath interface{}, fsRoot string) {
+	server.logger.Infof("REQ [%s] %s -> %s%s [%d]",
+		ctx.RemoteAddr().String(), reqPath, fsRoot,
+		resPath, ctx.Response.StatusCode())
 }
