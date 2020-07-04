@@ -12,6 +12,8 @@ import (
 // configFile defines the default config file location
 const configFile = "/etc/seiteki/config.json"
 
+var flagConfigFile = flag.String("config", configFile, "config file location")
+
 // Get returns a merged seiteki.Config instance
 // with configuration values collected from
 // flags, environment variables and default
@@ -74,7 +76,7 @@ func getFromEnv() (*seiteki.Config, error) {
 // If IO errors occur, this will be returned as
 // error.
 func getFromFile() (*seiteki.Config, error) {
-	_, err := os.Stat(configFile)
+	_, err := os.Stat(*flagConfigFile)
 	if os.IsNotExist(err) {
 		return nil, nil
 	}
@@ -82,7 +84,7 @@ func getFromFile() (*seiteki.Config, error) {
 		return nil, err
 	}
 
-	f, err := os.Open(configFile)
+	f, err := os.Open(*flagConfigFile)
 	if err != nil {
 		return nil, err
 	}

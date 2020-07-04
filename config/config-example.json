@@ -1,0 +1,9 @@
+{
+    "addr": "localhost:8080",
+    "cacheduration": "720h",
+    "compress": true,
+    "staticdir": "testdata",
+    "indexfile": "index.html",
+    "keyfile": "/etc/cert/key.pem",
+    "certfile": "/etc/cert/cert.pem"
+}

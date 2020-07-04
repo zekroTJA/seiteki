@@ -71,7 +71,7 @@ func New(config *Config) (*Seiteki, error) {
 	}
 
 	server.s = &fasthttp.Server{
-		Handler: server.requestHandler,
+		Handler: server.RequestHandler,
 	}
 
 	cacheDur, err := time.ParseDuration(config.CacheDuration)
@@ -120,10 +120,10 @@ func (server *Seiteki) ListenAndServeBlocking() error {
 	return server.s.ListenAndServe(server.config.Addr)
 }
 
-// requestHandler checks if the request destination is a
+// RequestHandler checks if the request destination is a
 // file or a web route. If it is a file, serve the file
 // via FS handler, else serve the "index.html" file.
-func (server *Seiteki) requestHandler(ctx *fasthttp.RequestCtx) {
+func (server *Seiteki) RequestHandler(ctx *fasthttp.RequestCtx) {
 	const serverHeader = "seiteki/" + Version
 
 	reqPath := ctx.Path()
