@@ -46,6 +46,7 @@ func getFromFlags() *seiteki.Config {
 	certFile := flag.String("cert", "", "ssl cert file location")
 	compress := flag.Bool("compress", false, "whether or not to gzip compress static files")
 	indexFile := flag.String("index", "index.html", "default index file location")
+	routeMode := flag.String("mode", "regex", "route mode used for static file determination [regex, stat, static]")
 	keyFile := flag.String("key", "", "ssl key file location")
 	staticDir := flag.String("dir", "web", "static file location")
 
@@ -57,6 +58,7 @@ func getFromFlags() *seiteki.Config {
 		CertFile:      *certFile,
 		Compress:      *compress,
 		IndexFile:     *indexFile,
+		RouteMode:     seiteki.RouteMode(*routeMode),
 		KeyFile:       *keyFile,
 		StaticDir:     *staticDir,
 	}
