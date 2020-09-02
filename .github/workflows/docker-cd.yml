@@ -1,0 +1,24 @@
+name: Docker CD
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+
+  releases-deploy:
+
+    name: Docker Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Build and Publish Docker Image
+        run: |
+          docker build . -t zekro/seiteki:latest
+          docker login -u zekro -p ${{ secrets.DOCKER_PASSWORD }}
+          docker push zekro/seiteki:latest
