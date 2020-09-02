@@ -123,4 +123,7 @@ func merge(source, target *seiteki.Config) {
 	if source.StaticDir != "" {
 		target.StaticDir = source.StaticDir
 	}
+	if source.RouteMode != "" {
+		target.RouteMode = source.RouteMode
+	}
 }

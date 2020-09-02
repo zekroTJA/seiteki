@@ -11,6 +11,7 @@ package seiteki
 import (
 	"fmt"
 	"math"
+	"os"
 	"path"
 	"regexp"
 	"time"
@@ -18,10 +19,44 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+// RouteMode is the mode type used to determine if the
+// accessed request path is a file or SPA route.
+type RouteMode string
+
+const (
+	// Route mode using regular expression on req path.
+	//
+	// This is useful when you exacly know which file extensions
+	// are served as static files and that they are included in
+	// the match regex. This mode is especially verry fast and
+	// has a less performance footprint because no file ops are
+	// executed on path check.
+	RouteModeRegex RouteMode = "regex"
+
+	// Route mode using fs stat on accessed file.
+	//
+	// This mode can be used if you don't know exacly which file
+	// extensions are served as static files or if these extensions
+	// are not included in the match regex. Also this is useful if
+	// you may have path missmatches for some reasons. This mode only
+	// serves a file when it is actually existent on the fs, otherwise
+	// the index file will be served. But keep in mind that this mode
+	// executes a fs stat operation on EVERY request, which might lead
+	// to poor performance.
+	RouteModeStat RouteMode = "stat"
+
+	// Route mode which bypasses the SPA matcher and tries to serve
+	// all request paths as static file.
+	//
+	// This is especially useful if you want to use seiteki as pure
+	// static file server without SPA routing.
+	RouteModeStatic RouteMode = "static"
+)
+
 // FileRx defines the regular expression used to
 // match static files by file extension. If you really
 // want to, just overwrite this variable to replace it.
-var FileRx = regexp.MustCompile(`^.*\.(ico|css|js|svg|gif|jpe?g|png)$`)
+var FileRx = regexp.MustCompile(`^.*\.(ico|css|js|svg|gif|jpe?g|png|html?)$`)
 
 const (
 	cacheControlHeader = "cache-control"
@@ -45,6 +80,11 @@ type Config struct {
 	StaticDir string `json:"staticdir"`
 	// Default index file name
 	IndexFile string `json:"indexfile"`
+
+	// RouteMode used for determining if the
+	// requested path is a static file or
+	// SPA route. Default is "regex".
+	RouteMode RouteMode `json:"routemode"`
 
 	// SSL key file directory
 	KeyFile string `json:"keyfile"`
@@ -120,6 +160,19 @@ func (server *Seiteki) ListenAndServeBlocking() error {
 	return server.s.ListenAndServe(server.config.Addr)
 }
 
+func (server *Seiteki) IsStaticFile(path []byte) bool {
+	switch server.config.RouteMode {
+	case RouteModeRegex:
+		return server.isStaticRegex(path)
+	case RouteModeStat:
+		return server.isStaticStat(path)
+	case RouteModeStatic:
+		return true
+	default:
+		return server.isStaticRegex(path)
+	}
+}
+
 // RequestHandler checks if the request destination is a
 // file or a web route. If it is a file, serve the file
 // via FS handler, else serve the "index.html" file.
@@ -131,7 +184,7 @@ func (server *Seiteki) RequestHandler(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.Set(cacheControlHeader, server.cacheHeader)
 	ctx.Response.Header.SetServer(serverHeader)
 
-	if FileRx.Match(reqPath) {
+	if server.IsStaticFile(reqPath) {
 		server.fsHandler(ctx)
 		server.logRequest(ctx, reqPath, reqPath, server.fs.Root)
 	} else {
@@ -143,6 +196,28 @@ func (server *Seiteki) RequestHandler(ctx *fasthttp.RequestCtx) {
 		etag := getETag(ctx.Response.Body(), false)
 		ctx.Response.Header.Set(etagHeader, etag)
 	}
+}
+
+// isStaticRegex uses the FileRx regular expression to determine
+// if the passed reuqest path is a static file.
+func (server *Seiteki) isStaticRegex(reqPath []byte) bool {
+	return FileRx.Match(reqPath)
+}
+
+// isStaticStat uses an fs stat operation on the given path to
+// determine if the passed reuqest path is a static file.
+func (server *Seiteki) isStaticStat(reqPath []byte) bool {
+	dir := path.Join(server.config.StaticDir, string(reqPath))
+	info, err := os.Stat(dir)
+	if os.IsNotExist(err) {
+		return false
+	}
+	if err != nil {
+		server.logger.Error("file stat failed: ", err)
+		return false
+	}
+
+	return !info.IsDir()
 }
 
 // logRequest loggs an incomming requests remote address,

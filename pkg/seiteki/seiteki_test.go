@@ -16,7 +16,7 @@ func getConfig() *Config {
 		CertFile:      "",
 		KeyFile:       "",
 		IndexFile:     "index.html",
-		StaticDir:     "testdata",
+		StaticDir:     "./testdata",
 	}
 }
 

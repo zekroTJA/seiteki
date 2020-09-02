@@ -30,7 +30,12 @@ func main() {
 	}
 	server.SetLogger(logger)
 
+	if cfg.RouteMode == "" {
+		cfg.RouteMode = seiteki.RouteModeRegex
+	}
+
 	log.Printf("serving dir: %s", cfg.StaticDir)
+	log.Printf("route mode: %s", cfg.RouteMode)
 	log.Printf("listening on addr: %s", cfg.Addr)
 	err = server.ListenAndServeBlocking()
 	log.Fatalf("failed starting server: %s", err.Error())
