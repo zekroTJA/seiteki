@@ -34,7 +34,7 @@ import (
 func main() {
     s, err := seiteki.New(&seiteki.Config{
         Addr:          "localhost:80",
-		CacheDuration: "720h",
+	    CacheDuration: "720h",
 		IndexFile:     "index.html",
 		StaticDir:     "web",
     })
@@ -64,19 +64,23 @@ You can enter `go run cmd/seiteki/main.go -h` to get a list of configuration fla
 ```
 Usage of seiteki:
   -addr string
-        expose address and port (default "localhost:80")
+    	expose address and port (default "localhost:80")
   -cd string
-        cache duration (for time format see https://golang.org/pkg/time/#ParseDuration) (default "720h")
+    	cache duration (for time format see https://golang.org/pkg/time/#ParseDuration) (default "720h")
   -cert string
-        ssl cert file location
+    	ssl cert file location
   -compress
-        whether or not to gzip compress static files
+    	whether or not to gzip compress static files
+  -config string
+    	config file location (default "/etc/seiteki/config.json")
   -dir string
-        static file location (default "web")
+    	static file location (default "web")
   -index string
-        default index file location (default "index.html")
+    	default index file location (default "index.html")
   -key string
-        ssl key file location
+    	ssl key file location
+  -mode string
+    	route mode used for static file determination [regex, stat, static] (default "regex")
 ```
 
 ### Environment Variable Configuration
@@ -91,6 +95,7 @@ export STK_KEYFILE="/etc/cert/key.pem"
 export STK_COMPRESS="true"
 export STK_INDEXFILE="index.html"
 export STK_STATICDIR="$PWD/web"
+export STK_ROUTEMODE="regex"
 ```
 
 ### File Configuration
@@ -98,13 +103,14 @@ export STK_STATICDIR="$PWD/web"
 The app checks if the config file exists under the location `/etc/seiteki/config.json` which looks like following:
 ```json
 {
-    "addr": "localhost:8080",
-    "cacheduration": "720h",
-    "compress": true,
-    "staticdir": "web",
-    "indexfile": "index.html",
-    "keyfile": "/etc/cert/key.pem",
-    "certfile": "/etc/cert/cert.pem"
+  "addr": "localhost:8080",
+  "cacheduration": "720h",
+  "compress": true,
+  "staticdir": "web",
+  "indexfile": "index.html",
+  "keyfile": "/etc/cert/key.pem",
+  "certfile": "/etc/cert/cert.pem",
+  "routemode": "regex"
 }
 ```
 
